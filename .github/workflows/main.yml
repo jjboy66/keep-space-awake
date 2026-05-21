@@ -1,0 +1,33 @@
+name: 'Keep Hugging Face Space Awake'
+
+on:
+  schedule:
+    # 每天 UTC 时间 0:00（北京时间上午 8:00）运行一次
+    - cron: "0 0 * * *"
+  workflow_dispatch:  # 允许你手动触发这个工作流
+
+jobs:
+  # 任务名称：访问 Hugging Face Space
+  access-hugging-face-space:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install agent-browser
+        run: npm install -g agent-browser
+
+      - name: Install Playwright browsers
+        run: agent-browser install --with-deps
+
+      - name: Visit Hugging Face Space
+        run: |
+          agent-browser open "${{ secrets.HF_SPACE_URL }}"
+          # 尝试等待页面上某个可能存在的关键词出现，以保证页面加载完成
+          # 如果不知道或想跳过，可以注释掉下面这行
+          # agent-browser wait --text "some_unique_text_on_your_page"
+          agent-browser close
+
+      - name: Completion notification (optional)
+        if: success()
+        run: echo "Successfully accessed the Space."
